@@ -21,6 +21,6 @@ python train_model_and_predict.py
 ```
 
 ## About me
-Feel free to add me as linked connection. :point_right:[Link](www.linkedin.com/in/jinbo-huang).
+Feel free to add me as linked connection. :point_right:[Link](www.linkedin.com/in/jinbo-huang):point_left:
 
 If you think this repo is helpful to you, you can show your support by giving it a :star:!
