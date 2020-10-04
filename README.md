@@ -1,6 +1,8 @@
 # Face recognition using dlib and knn :raising_hand_man:
 A light weight example demonstrates facial recognition with dlib. The code is hugely based on [dlib](http://dlib.net/) official examples and [How to Develop a Face Recognition System Using FaceNet in Keras](https://machinelearningmastery.com/how-to-develop-a-face-recognition-system-using-facenet-in-keras-and-an-svm-classifier/) tutorial
 
+![](images/aligned_faces.JPG)
+
 ## Usage
 1. Clone this repository
 ```
