@@ -1,11 +1,9 @@
+import argparse
 from pathlib import Path
 from PIL import Image
 import numpy as np
 from matplotlib import pyplot
 import dlib
-
-detector = dlib.cnn_face_detection_model_v1("mmod_human_face_detector.dat")
-facerec = dlib.face_recognition_model_v1("dlib_face_recognition_resnet_model_v1.dat")
 
 def get_embedding(model, face_pixels):
     # face_pixels = face_pixels.astype('float32')
@@ -16,7 +14,7 @@ def get_embedding(model, face_pixels):
     embedding = model.compute_face_descriptor(face_pixels)
     return embedding
 
-def extract_face(img_file, required_size=(150, 150)):
+def extract_face(detector, img_file, required_size=(150, 150)):
     image = Image.open(img_file)
     image = image.convert("RGB")
     pixels = np.asarray(image)
@@ -28,39 +26,51 @@ def extract_face(img_file, required_size=(150, 150)):
     face_array = np.asarray(image)
     return face_array
 
-def load_faces(directory):
+def load_faces(detector, directory):
     faces = list()
     for f in directory.iterdir():
-        face = extract_face(str(f))
+        face = extract_face(detector, str(f))
         faces.append(face)
     return faces
 
-def load_dataset(directory):
+def load_dataset(detector, directory):
     X, y = list(), list()
     for subdir in directory.iterdir():
         if subdir.is_dir() == False:
             continue
-        faces = load_faces(subdir)
+        faces = load_faces(detector, subdir)
         labels = [subdir.name for _ in range(len(faces))]
         print(f"Loaded {len(faces)} examples for class: {subdir.name}")
         X.extend(faces)
         y.extend(labels)
     return np.asarray(X), np.asarray(y)
 
+def get_argparser():
+    # parse augments
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--train-dir", type=str, required=True, help="directory contains training images")
+    parser.add_argument("--val-dir", type=str, required=True, help="directory contains validation images")
+    parser.add_argument("--detector-model", type=str, required=True, help="path to model for face detection")
+    parser.add_argument("--recog-model", type=str, required=True, help="path to model for face recognition")
+    return parser
+
 def main():
+    args = get_argparser().parse_args()
+
     # load dataset and extract faces
-    train_X, train_y = load_dataset(Path("5_celebrity/train"))
+    detector = dlib.cnn_face_detection_model_v1(args.detector_model)
+    train_X, train_y = load_dataset(detector, Path(args.train_dir))
     print(train_X.shape, train_y.shape)
 
-    val_X, val_y = load_dataset(Path("5_celebrity/val"))
+    val_X, val_y = load_dataset(detector, Path(args.val_dir))
     print(val_X.shape, val_y.shape)
 
     # uncomment this section if intermediate faces output are needed
     # np.savez_compressed('5-celebrity-faces-dataset.npz', train_X, train_y, val_X, val_y)
     # print("Save face embeddings to 5-celebrity-faces-dataset.npz")
 
-    model = dlib.face_recognition_model_v1("dlib_face_recognition_resnet_model_v1.dat")
-    print("Loaded model from dlib_face_recognition_resnet_model_v1.dat")
+    model = dlib.face_recognition_model_v1(args.recog_model)
+    print(f"Loaded model from {args.recog_model}")
 
     # convert faces to embeddings
     embed_train_X = list()
